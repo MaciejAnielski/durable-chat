@@ -10,10 +10,12 @@ import {
 } from "react-router";
 import { nanoid } from "nanoid";
 
-import { names, type ChatMessage, type Message } from "../shared";
+import { type ChatMessage, type Message } from "../shared";
 
 function App() {
-  const [name] = useState(names[Math.floor(Math.random() * names.length)]);
+  const [name, setName] = useState(
+    () => localStorage.getItem("nickname") || "",
+  );
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const { room } = useParams();
 
@@ -72,6 +74,21 @@ function App() {
 
   return (
     <div className="chat container">
+      <div className="row">
+        <input
+          type="text"
+          name="nickname"
+          className="twelve columns my-input-text"
+          placeholder="Enter your nickname"
+          value={name}
+          onChange={(e) => {
+            const value = e.target.value;
+            setName(value);
+            localStorage.setItem("nickname", value);
+          }}
+          autoComplete="off"
+        />
+      </div>
       {messages.map((message) => (
         <div key={message.id} className="row message">
           <div className="two columns user">{message.user}</div>
@@ -88,7 +105,7 @@ function App() {
           const chatMessage: ChatMessage = {
             id: nanoid(8),
             content: content.value,
-            user: name,
+            user: name || "Anonymous",
             role: "user",
           };
           setMessages((messages) => [...messages, chatMessage]);
@@ -108,10 +125,16 @@ function App() {
           type="text"
           name="content"
           className="ten columns my-input-text"
-          placeholder={`Hello ${name}! Type a message...`}
+          placeholder={
+            name ? `Hello ${name}! Type a message...` : "Type a message..."
+          }
           autoComplete="off"
         />
-        <button type="submit" className="send-message two columns">
+        <button
+          type="submit"
+          className="send-message two columns"
+          disabled={!name}
+        >
           Send
         </button>
       </form>
